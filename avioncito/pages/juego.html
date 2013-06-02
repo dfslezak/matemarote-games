@@ -1,0 +1,470 @@
+<html>
+<head>
+<title>Control</title>
+
+{{ js_includes }}
+<script type="text/javascript" src="./res/jquery.svg.package-1.3.2/jquery.svganim.js"></script>
+<script type="text/javascript" src="./res/jquery.svg.package-1.3.2/jquery.svg.js"></script>
+<script type="text/javascript" src="./res/soundmanager2.js"></script>
+<script type="text/javascript" src="./res/checkpoint.js"></script>
+<script type="text/javascript" src="./res/highscore.js"></script>
+<script type="text/javascript">
+$(document).ready(function (){
+    $("#video").hide();
+    $("#juegoCompleto").show();
+});
+</script>
+<script type="text/javascript">
+    function ControlGame(file){
+        this.trials = file;
+
+        var trial_idx = 0,
+            tries_idx = 0,
+            flecha_idx = 0;
+
+        this.current_arrow = function(){
+            var x = this.trials[trial_idx].tries[tries_idx][flecha_idx];
+                x.to_checkpoint = this.trials[trial_idx].nro_flechas - flecha_idx; 
+            return x;
+        }
+        this.next_arrow_wrong = function (){
+            if (tries_idx + 1 < this.trials[trial_idx].nro_tries){
+                tries_idx++;
+                flecha_idx = 0;
+                return true;
+            }else{
+                return false;
+            }
+        }
+        this.next_arrow_correct = function(){
+            if(flecha_idx+1 < this.trials[trial_idx].nro_flechas){
+                flecha_idx++;
+                return true;
+            }else if (trial_idx+1<this.trials.length){
+                trial_idx++;
+                flecha_idx = 0;
+                tries_idx = 0;
+                return true;
+            }else{
+                return false;
+            }
+        }
+        this.get_total_trials = function(){
+            var total_trials = 0,
+                i;
+            for (i = 0; i< this.trials.length; i++){
+                total_trials += this.trials[i].nro_flechas;
+            }
+            return total_trials;
+        }
+
+        this.get_puntaje = function(){
+            var x={"puntos":0,"checkpoint":false},
+                last_checkpoint = 0;
+            for (var i = 0; i< trial_idx; i++){
+                last_checkpoint += this.trials[i].nro_flechas;
+            }
+            x.puntos = last_checkpoint + flecha_idx;
+            if (flecha_idx ==0){
+                x.checkpoint = true;
+            }else{
+                x.checkpoint = false;
+            }
+            return x;
+        }
+ 
+        this.reset = function(){
+            trial_idx = 0;
+            flecha_idx = 0;
+            tries_idx = 0;
+        }
+    }
+
+    function TimeKeeper($reloj_div){
+        this.div = $reloj_div;
+        this.recieve_input = false;
+        this.div.svg();
+        this.svg = this.div.svg('get');
+        this.svg.circle(200, 200, 190,{fill: 'none', stroke: '#1B7AE2', 'stroke-width': 8});  // Usamos svg-jquery para dibujar
+        this.aguja = this.svg.line(200,200,200,50,{stroke: '#1B7AE2', 'stroke-width': 8,transform: 'rotate(0, 200, 200)'});
+ 
+        this.start_trial = function(time,callback){
+            this.recieve_input = true;
+             this.iteracion_reloj=0;
+            var scope = this;
+            function rotar(){
+                scope.aguja.setAttribute("transform","rotate("+Math.round(scope.iteracion_reloj*360/20)+",200,200)");
+                scope.iteracion_reloj++;
+                if (scope.iteracion_reloj>20){
+                    clearInterval(scope.reloj_trial);
+                    scope.recieve_input = false;
+                    return callback();
+                    }
+            }
+            this.reloj_trial = setInterval(rotar,time/20);
+        }
+
+        this.set_intertrial = function(reloj_intertrial){
+            this.reloj_intertrial = reloj_intertrial;
+        }
+
+        this.stop_trial = function(){
+            clearInterval(this.reloj_trial);
+            this.reloj_intertrial = 0;
+            this.recieve_input = false;
+            this.aguja.setAttribute("transform","rotate(0,200,200)");
+        }
+
+        this.stop_global = function(){
+            clearInterval(this.timer_global);
+        }
+
+
+        this.reset = function(time,$reloj_global, callback){
+            var i = 0;
+            var scope = this;
+            this.recieve_input = false;
+            this.$reloj_global = $reloj_global;
+            clearInterval(this.timer_global);
+            clearInterval(scope.reloj_trial);
+            clearTimeout(this.reloj_intertrial);
+            this.aguja.setAttribute("transform","rotate(0,200,200)");
+            this.$reloj_global.animate({width: "0%"},1000);
+            
+            function animar_global(){
+                scope.$reloj_global.css("width", i + "%");
+                if (i>100){
+                    i =0;
+                    clearInterval(scope.timer_global);
+                    terminar();
+                }
+                i++;
+            }
+            
+            function terminar(){
+                scope.recieve_input = false;
+                clearInterval(scope.reloj_trial);
+                clearTimeout(scope.reloj_intertrial);
+                return callback();
+            }
+            this.timer_global = setInterval(animar_global,time/100);
+        }
+
+    }
+
+function on_check(){
+    soundManager.play('check');
+}
+
+function on_end(){
+}
+
+// ________________________________ACA EMPIEZA__________________________________    
+    $(function(){
+        // Initialize time
+        var tempD = new Date();
+        $.games.start_time=tempD.getTime();
+
+
+        // LOAD SOUNDS
+        soundManager.url = './res/';
+        soundManager.debugMode = false;
+        soundManager.onload = function() {
+            soundManager.createSound('despegue','./res/sounds/despegue.mp3');
+            soundManager.createSound('choque','./res/sounds/choque.mp3');
+            soundManager.createSound('correct','./res/sounds/correct.mp3');
+            soundManager.createSound('wrong','./res/sounds/wrong.mp3');
+            soundManager.createSound('check','./res/sounds/checkpoint.mp3');
+            reset();
+        }
+
+
+        var LEFT_KEY = 97,//a
+            LEFT_KEY_UP = 65,//A
+            RIGHT_KEY = 108,//l
+            RIGHT_KEY_UP = 76,//L
+            RESTART_KEY = 114,
+            IMG_PATH = "../res/images/",
+            $juez = $('div#juez'),
+            $flecha = $('div#flecha'),
+            iteracion_reloj = 0,
+            logger = $.games.new_play(),
+            level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt"),
+            reloj = new TimeKeeper($('div#reloj')),
+            current_game= new ControlGame(level.game),
+            check = new Checkpoint(level.Checkpoints,on_end,on_check),
+            scoreTable = new Highscore(reset);
+
+        function presentar_flecha(){
+            $flecha.hide();
+            var arrow = current_game.current_arrow();
+            $('#img-'+ arrow.kind +'_'+ arrow.orientacion).show();
+            $("#flecha > img").not('#img-'+ arrow.kind +'_'+ arrow.orientacion).hide();
+            var reloj_intertrial = setTimeout(function(){
+                $flecha.css("left", arrow.posicion + "%" ).show();
+                tempD = new Date();
+                logger.log("presentaFlecha", {"flecha":arrow,"time":tempD.getTime()});
+                set_juez('transparent');
+                reloj.start_trial(arrow.time,function(){
+                        set_juez('#C52338');
+                        check.fallback();
+                        soundManager.play('wrong');
+                        tempD = new Date();
+                        logger.log("timeOut",{"time":tempD.getTime()});
+                        if (!current_game.next_arrow_wrong()){
+                            fin(current_game.get_puntaje().puntos);
+                            return;
+                        }
+                        presentar_flecha();
+                });                
+            }, 500);
+            reloj.set_intertrial(reloj_intertrial);
+        }
+        
+        function fin(puntos){
+			soundManager.play('choque');
+            $.games.set_score(puntos,[0,0]);
+        	$("#fin").fadeIn(6000,function(){scoreTable.showTable(puntos);});
+            check.displaytext('SE TERMINÓ');
+            reloj.stop_global();
+        }
+
+        function set_juez(color){
+            $juez.css("background-color", color);
+        }
+
+        function reset(){
+            tempD = new Date();
+            level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt");
+            current_game= new ControlGame(level.game);
+            //console.log("quedan " + (-tempD.getTime()+START_TIME + $.games.school_max_time*1000))
+            //if (tempD.getTime()>START_TIME + $.games.school_max_time*1000){
+            if (tempD.getTime()>$.games.start_time + $.games.school_max_time*1000 - $.games.seconds_played ){
+                $.games.set_score(current_game.get_puntaje().puntos,[0,0]);
+                $.games.school_end_stage();
+                $.games.game_finished();
+                check.displaytext('¡JUGASTE MUY BIEN! OTRO DIA JUGAMOS DE NUEVO')
+                setTimeout(function(){
+                    window.location = $.games.main_site;
+                    }, 3500);
+                return
+            }
+            $("#fin").hide();
+            scoreTable.hideTable();
+            set_juez('transparent');
+            $("#inicio").show();
+            soundManager.play('despegue');
+            check.displaytext('¡SE LARGA!')
+            check.set_at(0);
+            current_game.reset();
+            reloj.reset(240000,$("div#tiempo_total"),function(){
+                logger.log("finJuego",{"puntaje": current_game.get_puntaje().puntos,"time":tempD.getTime()});
+                fin(current_game.get_puntaje().puntos);
+                });
+            setTimeout(function(){
+                $("#inicio").hide();
+                logger.log("inicioJuego",{"time":tempD.getTime()});
+                presentar_flecha();
+            },6000);
+        }
+
+        function handle_response(e){
+            if (e.which == LEFT_KEY_UP){e.which = LEFT_KEY}
+            if (e.which == RIGHT_KEY_UP){e.which = RIGHT_KEY}
+            if(e.which == RESTART_KEY){
+                //reset(); //Desactivado, hacia que se tilde a veces (queda el boton en el ranking)
+                return;
+            }
+            if((e.which != LEFT_KEY && e.which != RIGHT_KEY) || !reloj.recieve_input){
+                return; //Lo dejamos errarle a la tecla tranquilo.
+            }
+            reloj.stop_trial();
+            $.games.save_seconds_played();
+            var arrow = current_game.current_arrow(),
+                puntaje,
+                correct = (e.which == LEFT_KEY && arrow.orientacion == 'left') ||
+                          (e.which == RIGHT_KEY && arrow.orientacion == 'right');
+            
+           correct = (arrow.kind == 'inverse') ? !correct : correct;
+		   correct = (arrow.kind == 'reverse_forward') ? !correct : correct;
+            if(correct){
+                soundManager.play('correct');
+                var next = current_game.next_arrow_correct();
+                puntaje = current_game.get_puntaje();
+				tempD = new Date();
+                logger.log("respuestaCorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint,"time":tempD.getTime()});
+                set_juez('#729D1B');
+                check.step();
+               if(!next){
+                    check.displaytext('¡JUGÁS BUENÍSIMO!', reset);
+                    score.set_score(current_game.get_total_trials());
+                    return;
+                }
+            }else{
+                soundManager.play('wrong');
+                var next = current_game.next_arrow_wrong();
+                puntaje = current_game.get_puntaje();
+				tempD = new Date();
+                logger.log("respuestaIncorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint,"time":tempD.getTime()});
+                set_juez('#C52338');
+                if (!next){
+                    fin(puntaje.puntos);
+                    return;
+                }
+                check.fallback();
+            }
+            presentar_flecha();
+        }
+        
+        
+        $(document).keypress(handle_response);
+    });
+</script>
+
+<style type="text/css">
+body { 
+    overflow:hidden;
+    background: #3D3D3D;
+    font-family: Helvetica;
+}
+a{
+	text-decoration:none;
+	color: white;
+}
+
+div#flecha {
+    display: none;
+    background-color: transparent;
+    text-align: center;
+    color: #FF0;
+    font-size: 50;
+    height: 75;
+    width: 100;
+    position: absolute;
+    top: 50%;
+    margin-top: -37px;
+    left: 100;
+}
+
+div#juez {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0%;
+    top: 0%;
+}
+
+div#reloj{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 400px;
+    height: 400px;
+    margin-left: -200px;
+    margin-top: -200px;
+
+}
+
+div#tiempo_total{
+    position: absolute;
+    top: 95%;
+    left: 0%;
+    height: 5%;
+    color:white;
+    background-color: #16A18C;
+    width: 0%;
+
+}
+#pasto{
+    position: absolute;
+	width:100%;
+    bottom: 0px;
+    left: 0px;
+}
+#pasto-img{
+    width:100%;
+    bottom: 0px;
+    left: 0px;
+}
+.deco {
+    position: absolute;
+}
+#inicio{
+	left: 50%;
+    top: 50%;
+    margin-left: -250px;
+    margin-top: -162px;
+}
+#fin{
+	display:none;
+    left: 60%;
+    bottom: 10%;
+}
+#fondo{
+	position:absolute;
+	left: 0px;
+	top: 0;
+	background:url('./res/images/fondoS.jpg') repeat;
+	width: 100%;
+	height: 100%;	
+}
+
+#fondo-img{
+	left: 0px;
+	top: 0;
+	width: 100%;
+	height: 100%;	
+}
+    
+</style>
+</head>
+<body>
+
+<div id="video">
+    <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="800" height="618" id="csSWF">
+        <param name="movie" value="Avioncito3.swf" />
+        <param name="quality" value="best" />
+        <param name="bgcolor" value="#1a1a1a" />
+        <param name="allowfullscreen" value="true" />
+        <param name="scale" value="showall" />
+        <param name="allowscriptaccess" value="always" />
+        <param name="flashvars" value="autostart=false&color=0x1A1A1A,0x1A1A1A" />
+        <!--[if !IE]>-->
+        <object type="application/x-shockwave-flash" data="Avioncito3.swf" width="800" height="618">
+            <param name="quality" value="best" />
+            <param name="bgcolor" value="#1a1a1a" />
+            <param name="allowfullscreen" value="true" />
+            <param name="scale" value="showall" />
+            <param name="allowscriptaccess" value="always" />
+            <param name="flashvars" value="autostart=false&color=0x1A1A1A,0x1A1A1A" />
+        <!--<![endif]-->
+            <div id="noUpdate">
+                <p>The Camtasia Studio video content presented here requires JavaScript to be enabled and the latest version of the Adobe Flash Player. If you are using a browser with JavaScript disabled please enable it now. Otherwise, please update your version of the free Adobe Flash Player by <a href="http://www.adobe.com/go/getflashplayer">downloading here</a>. </p>
+            </div>
+        <!--[if !IE]>-->
+        </object>
+        <!--<![endif]-->
+    </object>
+    <!--<button onclick="startJueguito()">EMPEZAR!!!</button>-->
+</div>
+<div id="juegoCompleto">
+<div id="fondo"></div>
+<div id="juez"></div>
+<div id="pasto"><img id="pasto-img" src="./res/images/pasto.png"></div>
+<div id="tiempo_total"></div>
+<div id="reloj"></div>
+<div id="flecha"><img id= "img-forward_left" src="./res/images/forward_left.png">
+                <img id= "img-forward_right" src="./res/images/forward_right.png">
+                <img id= "img-inverse_left" src="./res/images/inverse_left.png">
+                <img id= "img-inverse_right" src="./res/images/inverse_right.png">
+				<img id= "img-reverse_forward_left" src="./res/images/reverse_forward_left.png">
+                <img id= "img-reverse_forward_right" src="./res/images/reverse_forward_right.png">
+                <img id= "img-reverse_inverse_left" src="./res/images/reverse_inverse_left.png">
+                <img id= "img-reverse_inverse_right" src="./res/images/reverse_inverse_right.png">
+</div>
+<div class= "deco" id="inicio"><img src= "./res/images/inicio.png"></div>
+<div class= "deco" id="fin"><img src= "./res/images/fin.png"></div>
+</div>
+</body>
+</html>
+

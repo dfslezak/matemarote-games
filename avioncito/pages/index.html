@@ -1,0 +1,84 @@
+<html>
+    <head>
+        {{ js_includes }}
+
+        <style type="text/css">
+            body 
+            {
+                background-color: #1a1a1a;
+                font: .8em/1.3em verdana,arial,helvetica,sans-serif;
+                text-align: center;
+            }
+            #media
+            {
+                margin-top: 40px;
+            }
+            #noUpdate
+            {
+                margin: 0 auto;
+                font-family:Arial, Helvetica, sans-serif;
+                font-size: x-small;
+                color: #cccccc;
+                text-align: left;
+                width: 210px; 
+                height: 200px;  
+                padding: 40px;
+            }
+        </style>
+        <script type="text/javascript">
+        function getUrlVars()
+        {
+            var vars = [], hash;
+            var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+            for(var i = 0; i < hashes.length; i++)
+            {
+                hash = hashes[i].split('=');
+                vars.push(hash[0]);
+                vars[hash[0]] = hash[1];
+            }
+            return vars;
+        }
+
+        //$(document).ready(function(){
+        //    $("#alJuego").attr("href","juego.html?login_key="+getUrlVars()["login_key"]);
+        //});
+
+function countseconds(countdn, dl)
+{
+    //alert('ok! s= ' +countdn+ ' dl= ' +dl);
+    if (countdn < 0){ 
+	url = "juego.html?login_key="+getUrlVars()["login_key"]	;
+        document.getElementById(dl).innerHTML = "<center> <a id='alJuego' href='"+url+"'>APRET&Aacute; AC&Aacute; PARA JUGAR</a></center>";
+    }
+    else
+    {
+        document.getElementById(dl).innerHTML = countdn+ " seconds remain...";
+        setTimeout( 'countseconds('+(countdn-1)+',\''+dl+'\');', 1000 );
+    }
+}
+
+
+        </script>
+    </head>
+    <body onload = "countseconds('2', 'juego')">
+        <!--<div id="media">
+            <object id="csSWF" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="800" height="618" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,115,0">
+                <param name="src" value="Avioncito3.swf"/>
+                <param name="bgcolor" value="#1a1a1a"/>
+                <param name="quality" value="best"/>
+                <param name="allowScriptAccess" value="always"/>
+                <param name="allowFullScreen" value="true"/>
+                <param name="scale" value="showall"/>
+                <param name="flashVars" value="autostart=false#&color=0x1A1A1A,0x1A1A1A"/>
+                <embed name="csSWF" src="Avioncito3.swf" width="800" height="618" bgcolor="#1a1a1a" quality="best" allowScriptAccess="always" allowFullScreen="true" scale="showall" flashVars="autostart=false&color=0x1A1A1A,0x1A1A1A" pluginspage="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"></embed>
+            </object>
+            <a id="alJuego" href="#">APRET&Aacute; AC&Aacute; PARA JUGAR</a>
+        </div>-->
+	<iframe width="420" height="315" src="http://www.youtube.com/embed/xD8UMVwmTC4" frameborder="0" allowfullscreen></iframe>
+        <br/>
+        <span id="juego"></span>
+
+    </body>
+</html>
+
+
