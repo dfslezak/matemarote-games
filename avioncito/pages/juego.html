@@ -1,10 +1,9 @@
-<html>
-<head>
-<title>Control</title>
+{% extends 'games/game_base.html' %}
 
-{{ js_includes }}
-<script type="text/javascript" src="./res/jquery.svg.package-1.3.2/jquery.svganim.js"></script>
-<script type="text/javascript" src="./res/jquery.svg.package-1.3.2/jquery.svg.js"></script>
+{% load i18n %}
+{% load staticfiles %}
+
+{% block gamehead %}
 <script type="text/javascript" src="./res/soundmanager2.js"></script>
 <script type="text/javascript" src="./res/checkpoint.js"></script>
 <script type="text/javascript" src="./res/highscore.js"></script>
@@ -162,8 +161,7 @@ function on_end(){
 // ________________________________ACA EMPIEZA__________________________________    
     $(function(){
         // Initialize time
-        var tempD = new Date();
-        $.games.start_time=tempD.getTime();
+        $.games.game_start();
 
 
         // LOAD SOUNDS
@@ -188,8 +186,9 @@ function on_end(){
             $juez = $('div#juez'),
             $flecha = $('div#flecha'),
             iteracion_reloj = 0,
-            logger = $.games.new_play(),
-            level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt"),
+            //logger = $.games.new_play(),
+            //level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt"),
+            level = $.games.get_gamefile("control_gamefile0.txt"),
             reloj = new TimeKeeper($('div#reloj')),
             current_game= new ControlGame(level.game),
             check = new Checkpoint(level.Checkpoints,on_end,on_check),
@@ -223,7 +222,7 @@ function on_end(){
         
         function fin(puntos){
 			soundManager.play('choque');
-            $.games.set_score(puntos,[0,0]);
+            //$.games.set_score(puntos,[0,0]);
         	$("#fin").fadeIn(6000,function(){scoreTable.showTable(puntos);});
             check.displaytext('SE TERMINÓ');
             reloj.stop_global();
@@ -235,11 +234,12 @@ function on_end(){
 
         function reset(){
             tempD = new Date();
-            level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt");
+            //level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt");
+            level = $.games.get_gamefile("control_gamefile0.txt");
             current_game= new ControlGame(level.game);
             //console.log("quedan " + (-tempD.getTime()+START_TIME + $.games.school_max_time*1000))
             //if (tempD.getTime()>START_TIME + $.games.school_max_time*1000){
-            if (tempD.getTime()>$.games.start_time + $.games.school_max_time*1000 - $.games.seconds_played ){
+            /*if (tempD.getTime()>$.games.start_time + $.games.school_max_time*1000 - $.games.seconds_played ){
                 $.games.set_score(current_game.get_puntaje().puntos,[0,0]);
                 $.games.school_end_stage();
                 $.games.game_finished();
@@ -248,7 +248,7 @@ function on_end(){
                     window.location = $.games.main_site;
                     }, 3500);
                 return
-            }
+            }*/
             $("#fin").hide();
             scoreTable.hideTable();
             set_juez('transparent');
@@ -417,9 +417,9 @@ div#tiempo_total{
 }
     
 </style>
-</head>
-<body>
+{% endblock %}
 
+{% block gameblock %}
 <div id="video">
     <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="800" height="618" id="csSWF">
         <param name="movie" value="Avioncito3.swf" />
@@ -465,6 +465,5 @@ div#tiempo_total{
 <div class= "deco" id="inicio"><img src= "./res/images/inicio.png"></div>
 <div class= "deco" id="fin"><img src= "./res/images/fin.png"></div>
 </div>
-</body>
-</html>
+{% endblock %}
 
