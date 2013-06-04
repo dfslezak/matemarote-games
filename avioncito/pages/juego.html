@@ -9,7 +9,6 @@
 <script type="text/javascript" src="./res/highscore.js"></script>
 <script type="text/javascript">
 $(document).ready(function (){
-    $("#video").hide();
     $("#juegoCompleto").show();
 });
 </script>
@@ -187,8 +186,7 @@ function on_end(){
             $flecha = $('div#flecha'),
             iteracion_reloj = 0,
             //logger = $.games.new_play(),
-            //level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt"),
-            level = $.games.get_gamefile("control_gamefile0.txt"),
+            level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt"),
             reloj = new TimeKeeper($('div#reloj')),
             current_game= new ControlGame(level.game),
             check = new Checkpoint(level.Checkpoints,on_end,on_check),
@@ -202,14 +200,14 @@ function on_end(){
             var reloj_intertrial = setTimeout(function(){
                 $flecha.css("left", arrow.posicion + "%" ).show();
                 tempD = new Date();
-                logger.log("presentaFlecha", {"flecha":arrow,"time":tempD.getTime()});
+                //logger.log("presentaFlecha", {"flecha":arrow,"time":tempD.getTime()});
                 set_juez('transparent');
                 reloj.start_trial(arrow.time,function(){
                         set_juez('#C52338');
                         check.fallback();
                         soundManager.play('wrong');
                         tempD = new Date();
-                        logger.log("timeOut",{"time":tempD.getTime()});
+                        //logger.log("timeOut",{"time":tempD.getTime()});
                         if (!current_game.next_arrow_wrong()){
                             fin(current_game.get_puntaje().puntos);
                             return;
@@ -234,8 +232,7 @@ function on_end(){
 
         function reset(){
             tempD = new Date();
-            //level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt");
-            level = $.games.get_gamefile("control_gamefile0.txt");
+            level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt");
             current_game= new ControlGame(level.game);
             //console.log("quedan " + (-tempD.getTime()+START_TIME + $.games.school_max_time*1000))
             //if (tempD.getTime()>START_TIME + $.games.school_max_time*1000){
@@ -258,12 +255,12 @@ function on_end(){
             check.set_at(0);
             current_game.reset();
             reloj.reset(240000,$("div#tiempo_total"),function(){
-                logger.log("finJuego",{"puntaje": current_game.get_puntaje().puntos,"time":tempD.getTime()});
+                //logger.log("finJuego",{"puntaje": current_game.get_puntaje().puntos,"time":tempD.getTime()});
                 fin(current_game.get_puntaje().puntos);
                 });
             setTimeout(function(){
                 $("#inicio").hide();
-                logger.log("inicioJuego",{"time":tempD.getTime()});
+                //logger.log("inicioJuego",{"time":tempD.getTime()});
                 presentar_flecha();
             },6000);
         }
@@ -292,7 +289,7 @@ function on_end(){
                 var next = current_game.next_arrow_correct();
                 puntaje = current_game.get_puntaje();
 				tempD = new Date();
-                logger.log("respuestaCorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint,"time":tempD.getTime()});
+                //logger.log("respuestaCorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint,"time":tempD.getTime()});
                 set_juez('#729D1B');
                 check.step();
                if(!next){
@@ -305,7 +302,7 @@ function on_end(){
                 var next = current_game.next_arrow_wrong();
                 puntaje = current_game.get_puntaje();
 				tempD = new Date();
-                logger.log("respuestaIncorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint,"time":tempD.getTime()});
+                //logger.log("respuestaIncorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint,"time":tempD.getTime()});
                 set_juez('#C52338');
                 if (!next){
                     fin(puntaje.puntos);
@@ -420,33 +417,6 @@ div#tiempo_total{
 {% endblock %}
 
 {% block gameblock %}
-<div id="video">
-    <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="800" height="618" id="csSWF">
-        <param name="movie" value="Avioncito3.swf" />
-        <param name="quality" value="best" />
-        <param name="bgcolor" value="#1a1a1a" />
-        <param name="allowfullscreen" value="true" />
-        <param name="scale" value="showall" />
-        <param name="allowscriptaccess" value="always" />
-        <param name="flashvars" value="autostart=false&color=0x1A1A1A,0x1A1A1A" />
-        <!--[if !IE]>-->
-        <object type="application/x-shockwave-flash" data="Avioncito3.swf" width="800" height="618">
-            <param name="quality" value="best" />
-            <param name="bgcolor" value="#1a1a1a" />
-            <param name="allowfullscreen" value="true" />
-            <param name="scale" value="showall" />
-            <param name="allowscriptaccess" value="always" />
-            <param name="flashvars" value="autostart=false&color=0x1A1A1A,0x1A1A1A" />
-        <!--<![endif]-->
-            <div id="noUpdate">
-                <p>The Camtasia Studio video content presented here requires JavaScript to be enabled and the latest version of the Adobe Flash Player. If you are using a browser with JavaScript disabled please enable it now. Otherwise, please update your version of the free Adobe Flash Player by <a href="http://www.adobe.com/go/getflashplayer">downloading here</a>. </p>
-            </div>
-        <!--[if !IE]>-->
-        </object>
-        <!--<![endif]-->
-    </object>
-    <!--<button onclick="startJueguito()">EMPEZAR!!!</button>-->
-</div>
 <div id="juegoCompleto">
 <div id="fondo"></div>
 <div id="juez"></div>
