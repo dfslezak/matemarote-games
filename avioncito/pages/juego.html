@@ -4,8 +4,10 @@
 {% load staticfiles %}
 
 {% block gamehead %}
+<link href="./res/styles.css" rel="stylesheet" media="screen">
+
 <script type="text/javascript" src="./res/soundmanager2.js"></script>
-<script type="text/javascript" src="./res/checkpoint.js"></script>
+<!--<script type="text/javascript" src="./res/checkpoint.js"></script>-->
 <script type="text/javascript" src="./res/highscore.js"></script>
 <script type="text/javascript">
 $(document).ready(function (){
@@ -189,7 +191,7 @@ function on_end(){
             level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt"),
             reloj = new TimeKeeper($('div#reloj')),
             current_game= new ControlGame(level.game),
-            check = new Checkpoint(level.Checkpoints,on_end,on_check),
+            //check = new Checkpoint(level.Checkpoints,on_end,on_check),
             scoreTable = new Highscore(reset);
 
         function presentar_flecha(){
@@ -204,7 +206,7 @@ function on_end(){
                 set_juez('transparent');
                 reloj.start_trial(arrow.time,function(){
                         set_juez('#C52338');
-                        check.fallback();
+                        //check.fallback();
                         soundManager.play('wrong');
                         tempD = new Date();
                         //logger.log("timeOut",{"time":tempD.getTime()});
@@ -222,7 +224,7 @@ function on_end(){
 			soundManager.play('choque');
             //$.games.set_score(puntos,[0,0]);
         	$("#fin").fadeIn(6000,function(){scoreTable.showTable(puntos);});
-            check.displaytext('SE TERMINÓ');
+            //check.displaytext('SE TERMINÓ');
             reloj.stop_global();
         }
 
@@ -251,8 +253,8 @@ function on_end(){
             set_juez('transparent');
             $("#inicio").show();
             soundManager.play('despegue');
-            check.displaytext('¡SE LARGA!')
-            check.set_at(0);
+            //check.displaytext('¡SE LARGA!')
+            //check.set_at(0);
             current_game.reset();
             reloj.reset(240000,$("div#tiempo_total"),function(){
                 //logger.log("finJuego",{"puntaje": current_game.get_puntaje().puntos,"time":tempD.getTime()});
@@ -291,7 +293,7 @@ function on_end(){
 				tempD = new Date();
                 //logger.log("respuestaCorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint,"time":tempD.getTime()});
                 set_juez('#729D1B');
-                check.step();
+                //check.step();
                if(!next){
                     check.displaytext('¡JUGÁS BUENÍSIMO!', reset);
                     score.set_score(current_game.get_total_trials());
@@ -308,7 +310,7 @@ function on_end(){
                     fin(puntaje.puntos);
                     return;
                 }
-                check.fallback();
+                //check.fallback();
             }
             presentar_flecha();
         }
@@ -318,102 +320,6 @@ function on_end(){
     });
 </script>
 
-<style type="text/css">
-body { 
-    overflow:hidden;
-    background: #3D3D3D;
-    font-family: Helvetica;
-}
-a{
-	text-decoration:none;
-	color: white;
-}
-
-div#flecha {
-    display: none;
-    background-color: transparent;
-    text-align: center;
-    color: #FF0;
-    font-size: 50;
-    height: 75;
-    width: 100;
-    position: absolute;
-    top: 50%;
-    margin-top: -37px;
-    left: 100;
-}
-
-div#juez {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    left: 0%;
-    top: 0%;
-}
-
-div#reloj{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 400px;
-    height: 400px;
-    margin-left: -200px;
-    margin-top: -200px;
-
-}
-
-div#tiempo_total{
-    position: absolute;
-    top: 95%;
-    left: 0%;
-    height: 5%;
-    color:white;
-    background-color: #16A18C;
-    width: 0%;
-
-}
-#pasto{
-    position: absolute;
-	width:100%;
-    bottom: 0px;
-    left: 0px;
-}
-#pasto-img{
-    width:100%;
-    bottom: 0px;
-    left: 0px;
-}
-.deco {
-    position: absolute;
-}
-#inicio{
-	left: 50%;
-    top: 50%;
-    margin-left: -250px;
-    margin-top: -162px;
-}
-#fin{
-	display:none;
-    left: 60%;
-    bottom: 10%;
-}
-#fondo{
-	position:absolute;
-	left: 0px;
-	top: 0;
-	background:url('./res/images/fondoS.jpg') repeat;
-	width: 100%;
-	height: 100%;	
-}
-
-#fondo-img{
-	left: 0px;
-	top: 0;
-	width: 100%;
-	height: 100%;	
-}
-    
-</style>
 {% endblock %}
 
 {% block gameblock %}

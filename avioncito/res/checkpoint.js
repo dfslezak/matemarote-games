@@ -23,7 +23,7 @@ function Checkpoint(trials,on_end,on_check){
 	for(i=0;i<N;i++){
 		$($chdiv).append("<div id=checkpoint"+ i +" class=checkpoint style=\"position: absolute; height: 100%; width: 5%; top: 0%; left: "+Math.round(trials[i]*93/ntrials)+"%;background-color: white\"></div>");
 	}
-	$($chdiv).append("<div id=slider style=\"position: absolute; height: 100%; width: 5%; top: 0%; left: 0px;background-color: grey;\"></div>");
+	$($chdiv).append("<div id=slider style=\"position: relative; height: 100%; width: 5%; top: 0%; left: 0px;background-color: grey;\"></div>");
 	for(i=0;i<=N;i++){
 	$("#slider").append("<img id=\"checkimg"+i+"\" src=\""+IMG_URL+(i+1)+".png\" style=\" width:100%;height:100% \">")		
 	}
