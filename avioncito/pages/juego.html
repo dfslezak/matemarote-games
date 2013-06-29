@@ -187,7 +187,6 @@ function on_end(){
             $juez = $('div#juez'),
             $flecha = $('div#flecha'),
             iteracion_reloj = 0,
-            //logger = $.games.new_play(),
             level = $.games.get_gamefile("control_gamefile"+Math.floor(Math.random()*7)+".txt"),
             reloj = new TimeKeeper($('div#reloj')),
             current_game= new ControlGame(level.game),
@@ -201,15 +200,13 @@ function on_end(){
             $("#flecha > img").not('#img-'+ arrow.kind +'_'+ arrow.orientacion).hide();
             var reloj_intertrial = setTimeout(function(){
                 $flecha.css("left", arrow.posicion + "%" ).show();
-                tempD = new Date();
-                //logger.log("presentaFlecha", {"flecha":arrow,"time":tempD.getTime()});
+                $.games.logger.log("presentaFlecha", {"flecha":arrow});
                 set_juez('transparent');
                 reloj.start_trial(arrow.time,function(){
                         set_juez('#C52338');
                         //check.fallback();
                         soundManager.play('wrong');
-                        tempD = new Date();
-                        //logger.log("timeOut",{"time":tempD.getTime()});
+                        $.games.logger.log("timeOut",{});
                         if (!current_game.next_arrow_wrong()){
                             fin(current_game.get_puntaje().puntos);
                             return;
@@ -257,12 +254,12 @@ function on_end(){
             //check.set_at(0);
             current_game.reset();
             reloj.reset(240000,$("div#tiempo_total"),function(){
-                //logger.log("finJuego",{"puntaje": current_game.get_puntaje().puntos,"time":tempD.getTime()});
+                $.games.logger.log("finJuego",{"puntaje": current_game.get_puntaje().puntos});
                 fin(current_game.get_puntaje().puntos);
                 });
             setTimeout(function(){
                 $("#inicio").hide();
-                //logger.log("inicioJuego",{"time":tempD.getTime()});
+                $.games.logger.log("inicioJuego",{});
                 presentar_flecha();
             },6000);
         }
@@ -290,8 +287,7 @@ function on_end(){
                 soundManager.play('correct');
                 var next = current_game.next_arrow_correct();
                 puntaje = current_game.get_puntaje();
-				tempD = new Date();
-                //logger.log("respuestaCorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint,"time":tempD.getTime()});
+                $.games.logger.log("respuestaCorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint});
                 set_juez('#729D1B');
                 //check.step();
                if(!next){
@@ -303,8 +299,7 @@ function on_end(){
                 soundManager.play('wrong');
                 var next = current_game.next_arrow_wrong();
                 puntaje = current_game.get_puntaje();
-				tempD = new Date();
-                //logger.log("respuestaIncorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint,"time":tempD.getTime()});
+                $.games.logger.log("respuestaIncorrecta", {"puntos": puntaje.puntos,"dist_to_checkpoint":arrow.to_checkpoint});
                 set_juez('#C52338');
                 if (!next){
                     fin(puntaje.puntos);
